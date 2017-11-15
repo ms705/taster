@@ -1,6 +1,3 @@
-extern crate env_logger;
-extern crate log;
-
 extern crate afterparty;
 #[macro_use]
 extern crate clap;
@@ -13,6 +10,9 @@ extern crate regex;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate slack_hook;
+#[macro_use]
+extern crate slog;
+extern crate slog_term;
 extern crate toml;
 
 mod args;
@@ -49,9 +49,19 @@ pub struct Push {
     pub repo_name: Option<String>,
 }
 
+fn new_logger() -> slog::Logger {
+    use slog::Drain;
+    use slog::Logger;
+    use slog_term::term_full;
+    use std::sync::Mutex;
+    Logger::root(Mutex::new(term_full()).fuse(), o!())
+}
+
 pub fn main() {
     let args = args::parse_args();
     let workdir = Path::new(&args.workdir);
+
+    let log = new_logger();
 
     let mut history = HashMap::new();
     let ws = repo::Workspace::new(&args.repo, workdir);
@@ -109,7 +119,7 @@ pub fn main() {
                     args.timeout,
                 );
                 match res {
-                    Err(e) => println!("ERROR: failed to taste {}: {}", cid, e),
+                    Err(e) => error!(log, "failed to taste {}: {}", cid, e),
                     Ok((cfg, tr)) => {
                         // email notification
                         if en.is_some() {
@@ -145,7 +155,7 @@ pub fn main() {
             if b != "origin/master" {
                 continue;
             }
-            println!(
+            info!(log,
                 "tasting HEAD of {}: {} / {}",
                 b,
                 c.id(),
@@ -195,7 +205,7 @@ pub fn main() {
                     ref repository,
                     ..
                 } => {
-                    println!(
+                    info!(log,
                         "Handling {} commits pushed by {}",
                         commits.len(),
                         pusher.name
@@ -220,7 +230,7 @@ pub fn main() {
                         if gn.is_some() {
                             match gn.as_ref().unwrap().notify_pending(&push, &commit) {
                                 Ok(_) => (),
-                                Err(e) => println!(
+                                Err(e) => error!(log,
                                     "failed to deliver GitHub status notification: {:?}",
                                     e
                                 ),
@@ -265,8 +275,8 @@ pub fn main() {
                             mv_args.timeout,
                         );
                         match head_res {
-                            Err(e) => println!(
-                                "ERROR: failed to taste HEAD commit {}: {}",
+                            Err(e) => error!(log,
+                                "failed to taste HEAD commit {}: {}",
                                 head_commit.id,
                                 e
                             ),
@@ -296,8 +306,8 @@ pub fn main() {
                                             mv_args.timeout,
                                         );
                                         match res {
-                                            Err(e) => println!(
-                                                "ERROR: failed to taste commit {}: {}",
+                                            Err(e) => error!(log,
+                                                "failed to taste commit {}: {}",
                                                 c.id,
                                                 e
                                             ),
@@ -307,7 +317,7 @@ pub fn main() {
                                         }
                                     }
                                 } else if !commits.is_empty() {
-                                    println!(
+                                    info!(log,
                                         "Skipping {} remaining commits in push!",
                                         commits.len() - 1
                                     );
@@ -323,6 +333,6 @@ pub fn main() {
 
     let srvc = Server::http(&args.listen_addr).unwrap().handle(hub);
 
-    println!("Taster listening on {}", args.listen_addr);
+    info!(new_logger(), "Taster listening on {}", args.listen_addr);
     srvc.unwrap();
 }
