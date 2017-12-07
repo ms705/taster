@@ -17,6 +17,7 @@ extern crate toml;
 
 mod args;
 mod auth;
+mod common;
 mod config;
 mod email;
 mod repo;
@@ -31,37 +32,14 @@ use std::error::Error;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
+use common::{Commit, Push};
 use config::Config;
-
-#[derive(Clone, Debug)]
-pub struct Commit {
-    pub id: git2::Oid,
-    pub msg: String,
-    pub url: String,
-}
-
-#[derive(Clone, Debug)]
-pub struct Push {
-    pub head_commit: Commit,
-    pub push_ref: Option<String>,
-    pub pusher: Option<String>,
-    pub owner_name: Option<String>,
-    pub repo_name: Option<String>,
-}
-
-fn new_logger() -> slog::Logger {
-    use slog::Drain;
-    use slog::Logger;
-    use slog_term::term_full;
-    use std::sync::Mutex;
-    Logger::root(Mutex::new(term_full()).fuse(), o!())
-}
 
 pub fn main() {
     let args = args::parse_args();
     let workdir = Path::new(&args.workdir);
 
-    let log = new_logger();
+    let log = common::new_logger();
 
     let mut history = HashMap::new();
     let ws = repo::Workspace::new(&args.repo, workdir);
@@ -333,6 +311,6 @@ pub fn main() {
 
     let srvc = Server::http(&args.listen_addr).unwrap().handle(hub);
 
-    info!(new_logger(), "Taster listening on {}", args.listen_addr);
+    info!(common::new_logger(), "Taster listening on {}", args.listen_addr);
     srvc.unwrap();
 }
