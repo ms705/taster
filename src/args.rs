@@ -21,8 +21,6 @@ pub struct Args {
     pub slack_hook_url: Option<String>,
     pub slack_channel: Option<String>,
 
-    pub taste_commit: Option<String>,
-
     pub taste_head_only: bool,
     pub verbose_notify: bool,
 
@@ -114,14 +112,6 @@ pub fn parse_args() -> Args {
                 .help("GitHub API key to provide status notifications"),
         )
         .arg(
-            Arg::with_name("taste_commit")
-                .long("taste_commit")
-                .short("t")
-                .takes_value(true)
-                .required(false)
-                .help("Do a one-off taste of a specific commit"),
-        )
-        .arg(
             Arg::with_name("taste_head_only")
                 .long("taste_head_only")
                 .required(false)
@@ -167,8 +157,6 @@ pub fn parse_args() -> Args {
         email_notification_addr: args.value_of("email_addr").map(String::from),
         slack_hook_url: args.value_of("slack_hook_url").map(String::from),
         slack_channel: args.value_of("slack_channel").map(String::from),
-
-        taste_commit: args.value_of("taste_commit").map(String::from),
 
         taste_head_only: args.is_present("taste_head_only"),
         verbose_notify: args.is_present("verbose_notifications"),

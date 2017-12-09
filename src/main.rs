@@ -28,8 +28,6 @@ mod github;
 
 use afterparty::{Delivery, Event, Hub};
 use hyper::Server;
-use std::collections::HashMap;
-use std::error::Error;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
@@ -67,64 +65,7 @@ pub fn main() {
         None
     };
 
-    if args.taste_commit.is_some() {
-        let cid = if args.taste_commit.is_some() && args.taste_commit.as_ref().unwrap() == "HEAD" {
-            ws.repo.head().unwrap().target().unwrap().clone()
-        } else {
-            git2::Oid::from_str(args.taste_commit.as_ref().unwrap()).unwrap()
-        };
-        match ws.repo.find_object(cid, None) {
-            Err(e) => panic!(format!("{}", e.description())),
-            Ok(o) => {
-                let cobj = o.as_commit().unwrap();
-                let hc = Commit {
-                    id: cobj.id(),
-                    msg: String::from(cobj.message().unwrap()),
-                    url: format!("{}/commit/{}", args.repo, cobj.id()),
-                };
-                // fake a push
-                let push = Push {
-                    head_commit: hc,
-                    push_ref: None,
-                    pusher: None,
-                    owner_name: None,
-                    repo_name: None,
-                };
-                let res = taste::taste_commit(
-                    &ws,
-                    &mut history,
-                    &push,
-                    &push.head_commit,
-                    args.improvement_threshold,
-                    args.regression_threshold,
-                    args.timeout,
-                );
-                match res {
-                    Err(e) => error!(log, "failed to taste {}: {}", cid, e),
-                    Ok((cfg, tr)) => {
-                        // email notification
-                        if en.is_some() {
-                            en.as_ref()
-                                .unwrap()
-                                .notify(cfg.as_ref(), &tr, &push)
-                                .unwrap();
-                        }
-                        // slack notification
-                        if sn.is_some() {
-                            sn.as_ref()
-                                .unwrap()
-                                .notify(cfg.as_ref(), &tr, &push)
-                                .unwrap();
-                        }
-                        // We're done
-                        return;
-                    }
-                }
-            }
-        };
-    }
-
-    // If we get here, we must be running in continuous mode
+    // We currently always need a GitHub hook secret
     if let None = args.github_hook_secret {
         panic!("--secret must be set when in continuous webhook handler mode");
     }
