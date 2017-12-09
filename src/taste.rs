@@ -1,4 +1,5 @@
 use config::{parse_config, Benchmark, Config};
+use history::History;
 use Commit;
 use git2;
 use Push;
@@ -192,7 +193,7 @@ fn build(workdir: &str) -> Output {
 
 pub fn taste_commit(
     ws: &Workspace,
-    history: &mut HashMap<String, HashMap<String, HashMap<String, BenchmarkResult<f64>>>>,
+    history: &mut History,
     push: &Push,
     commit: &Commit,
     def_improvement_threshold: f64,
@@ -289,7 +290,7 @@ pub fn taste_commit(
     let bench_results =
         match branch {
             Some(ref branch) => {
-                let branch_history = history.entry(branch.clone()).or_insert(HashMap::new());
+                let branch_history = history.mut_branch_head(&branch);
                 cfg.benchmarks
                 .iter()
                 .map(|b| {

@@ -20,6 +20,7 @@ mod auth;
 mod common;
 mod config;
 mod email;
+mod history;
 mod repo;
 mod slack;
 mod taste;
@@ -34,6 +35,7 @@ use std::sync::{Arc, Mutex};
 
 use common::{Commit, Push};
 use config::Config;
+use history::History;
 
 pub fn main() {
     let args = args::parse_args();
@@ -41,8 +43,9 @@ pub fn main() {
 
     let log = common::new_logger();
 
-    let mut history = HashMap::new();
+    let mut history = History::new();
     let ws = repo::Workspace::new(&args.repo, workdir);
+
     let en = if let Some(ref addr) = args.email_notification_addr {
         Some(email::EmailNotifier::new(addr, &args.repo))
     } else {
