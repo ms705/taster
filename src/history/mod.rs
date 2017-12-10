@@ -5,7 +5,7 @@ use git2;
 use taste::BenchmarkResult;
 
 pub mod in_memory;
-#[cfg(soup)]
+#[cfg(feature = "soup")]
 pub mod soup;
 
 // (benchmark, (metric, result))

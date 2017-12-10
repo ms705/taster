@@ -3,9 +3,14 @@ name = "taster"
 version = "0.0.1"
 authors = ["Malte Schwarzkopf <malte@csail.mit.edu>"]
 
+[features]
+default = []
+soup = ["distributary"]
+
 [dependencies]
 afterparty = { git = "https://github.com/ms705/afterparty" }
 clap = "2.13"
+distributary = { git = "https://github.com/mit-pdos/distributary", optional = true }
 git2 = "0.6.4"
 hyper = "0.10"
 lettre = "0.6.2"

@@ -50,12 +50,17 @@ impl Taster {
             None
         };
 
+        #[cfg(feature = "soup")]
+        let history = history::soup::SoupHistoryDB::new("127.0.0.1:2181");
+        #[cfg(not(feature = "soup"))]
+        let history = history::in_memory::InMemoryHistoryDB::new();
+
         Taster {
             args: args,
             log: common::new_logger(),
 
             ws: repo::Workspace::new(&repo, workdir),
-            history: Box::new(history::in_memory::InMemoryHistoryDB::new()),
+            history: Box::new(history),
 
             gn: gn,
             sn: sn,

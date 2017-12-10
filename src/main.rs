@@ -1,6 +1,8 @@
 extern crate afterparty;
 #[macro_use]
 extern crate clap;
+#[cfg(feature = "soup")]
+extern crate distributary;
 extern crate git2;
 extern crate github_rs;
 extern crate hyper;
