@@ -3,7 +3,7 @@ use common::{self, Commit, Push};
 use config::Config;
 use email;
 use github;
-use history::History;
+use history::{self, HistoryDB};
 use repo::{self, Workspace};
 use slack;
 use taste;
@@ -16,7 +16,7 @@ pub struct Taster {
     log: slog::Logger,
 
     ws: Workspace,
-    history: History,
+    history: Box<HistoryDB>,
 
     en: Option<email::EmailNotifier>,
     gn: Option<github::GithubNotifier>,
@@ -55,7 +55,7 @@ impl Taster {
             log: common::new_logger(),
 
             ws: repo::Workspace::new(&repo, workdir),
-            history: History::new(),
+            history: Box::new(history::in_memory::InMemoryHistoryDB::new()),
 
             gn: gn,
             sn: sn,
@@ -92,7 +92,7 @@ impl Taster {
             };
             let res = taste::taste_commit(
                 &self.ws,
-                &mut self.history,
+                self.history.as_mut(),
                 &push,
                 &push.head_commit,
                 self.args.improvement_threshold,
@@ -147,7 +147,7 @@ impl Taster {
         self.ws.fetch().unwrap();
         let head_res = taste::taste_commit(
             &self.ws,
-            &mut self.history,
+            self.history.as_mut(),
             &push,
             &push.head_commit,
             self.args.improvement_threshold,
@@ -174,7 +174,7 @@ impl Taster {
                         // taste
                         let res = taste::taste_commit(
                             &self.ws,
-                            &mut self.history,
+                            self.history.as_mut(),
                             &push,
                             &cur_c,
                             self.args.improvement_threshold,
