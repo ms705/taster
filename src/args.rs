@@ -21,12 +21,30 @@ pub struct Args {
     pub slack_hook_url: Option<String>,
     pub slack_channel: Option<String>,
 
+    pub history_db: HistoryDBProvider,
+
     pub taste_head_only: bool,
     pub verbose_notify: bool,
 
     pub improvement_threshold: f64,
     pub regression_threshold: f64,
     pub timeout: Option<u64>,
+}
+
+#[cfg(feature = "soup")]
+arg_enum!{
+    #[derive(PartialEq, Debug, Clone)]
+    pub enum HistoryDBProvider {
+        InMemory,
+        Soup,
+    }
+}
+#[cfg(not(feature = "soup"))]
+arg_enum!{
+    #[derive(PartialEq, Debug, Clone)]
+    pub enum HistoryDBProvider {
+        InMemory,
+    }
 }
 
 pub fn parse_args() -> Args {
@@ -80,6 +98,14 @@ pub fn parse_args() -> Args {
                     "Relative performance threshold above which a result is considered an \
                      improvement that needs reporting (0.1 = +/-10%).",
                 ),
+        )
+        .arg(
+            Arg::with_name("history_db")
+                .long("history-db")
+                .takes_value(true)
+                .possible_values(&HistoryDBProvider::variants())
+                .case_insensitive(true)
+                .help("History storage provider to use."),
         )
         .arg(
             Arg::with_name("secret")
@@ -157,6 +183,8 @@ pub fn parse_args() -> Args {
         email_notification_addr: args.value_of("email_addr").map(String::from),
         slack_hook_url: args.value_of("slack_hook_url").map(String::from),
         slack_channel: args.value_of("slack_channel").map(String::from),
+
+        history_db: value_t!(args, "history_db", HistoryDBProvider).unwrap_or_else(|e| e.exit()),
 
         taste_head_only: args.is_present("taste_head_only"),
         verbose_notify: args.is_present("verbose_notifications"),
