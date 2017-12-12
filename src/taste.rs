@@ -291,15 +291,12 @@ pub fn taste_commit(
         Some(ref branch) => cfg.benchmarks
             .iter()
             .map(|b| {
-                let head_history = history.get_commit(branch, None).unwrap();
-                let (status, res) = benchmark(
-                    &ws.path,
-                    &cfg,
-                    b,
-                    commit.id,
-                    head_history.get(&b.name),
-                    timeout,
-                );
+                let head_history = match history.get_commit(branch, None) {
+                    Ok(h) => Some(h.get(&b.name).unwrap().clone()),
+                    Err(_) => None,
+                };
+                let (status, res) =
+                    benchmark(&ws.path, &cfg, b, commit.id, head_history.as_ref(), timeout);
                 let mut entry = HashMap::new();
                 entry.insert(b.name.clone(), res.clone());
                 history.put(branch, commit.id, entry).unwrap();
