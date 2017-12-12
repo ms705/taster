@@ -22,10 +22,10 @@ pub trait HistoryDB: Send {
     ) -> Result<(), String>;
 
     fn get_commit(
-        &self,
+        &mut self,
         branch: &str,
         commit: Option<&git2::Oid>,
     ) -> Result<BranchHistoryEntry, String>;
 
-    fn get_branch_history(&self, branch: &str) -> Result<Vec<BranchHistoryEntry>, String>;
+    fn get_branch_history(&mut self, branch: &str) -> Result<Vec<BranchHistoryEntry>, String>;
 }
