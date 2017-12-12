@@ -11,8 +11,8 @@ pub struct SoupHistoryDB {
     log: slog::Logger,
 
     recipe: String,
-    tables: BTreeMap<String, NodeIndex>,
-    views: BTreeMap<String, NodeIndex>,
+    tables: BTreeMap<String, Mutator>,
+    views: BTreeMap<String, RemoteGetter>,
 }
 
 impl SoupHistoryDB {
@@ -34,8 +34,14 @@ impl SoupHistoryDB {
         debug!(log, "Installing recipe in Soup...");
         ch.install_recipe(recipe.to_owned());
 
-        let inputs = ch.inputs();
-        let outputs = ch.outputs();
+        let inputs = ch.inputs()
+            .into_iter()
+            .map(|(n, i)| (n, ch.get_mutator(i).unwrap()))
+            .collect::<BTreeMap<String, Mutator>>();
+        let outputs = ch.outputs()
+            .into_iter()
+            .map(|(n, o)| (n, ch.get_getter(o).unwrap()))
+            .collect::<BTreeMap<String, RemoteGetter>>();
 
         SoupHistoryDB {
             soup: ch,
