@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
-use distributary::{ControllerHandle, Mutator, RemoteGetter, ZookeeperAuthority};
+use distributary::{ControllerHandle, Mutator, NodeIndex, RemoteGetter, ZookeeperAuthority};
 use git2;
 use slog;
 
@@ -11,8 +11,8 @@ pub struct SoupHistoryDB {
     log: slog::Logger,
 
     recipe: String,
-    tables: HashMap<String, Mutator>,
-    views: HashMap<String, RemoteGetter>,
+    tables: BTreeMap<String, NodeIndex>,
+    views: BTreeMap<String, NodeIndex>,
 }
 
 impl SoupHistoryDB {
@@ -34,13 +34,16 @@ impl SoupHistoryDB {
         debug!(log, "Installing recipe in Soup...");
         ch.install_recipe(recipe.to_owned());
 
+        let inputs = ch.inputs();
+        let outputs = ch.outputs();
+
         SoupHistoryDB {
             soup: ch,
             log: log,
 
             recipe: recipe.to_owned(),
-            tables: HashMap::default(),
-            views: HashMap::default(),
+            tables: inputs,
+            views: outputs,
         }
     }
 }
