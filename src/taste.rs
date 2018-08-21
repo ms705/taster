@@ -122,19 +122,19 @@ fn benchmark(
         for (i, regex) in bench.result_expr.iter().enumerate() {
             for cap in regex.captures_iter(l) {
                 let (metric, value) = if cap.len() > 2 {
-                    (String::from(cap.at(1).unwrap()), cap.at(2))
+                    (String::from(cap.get(1).unwrap().as_str()), cap.get(2))
                 } else {
-                    (format!("{}", i), cap.at(1))
+                    (format!("{}", i), cap.get(1))
                 };
                 let bm_name = format!("{}/{}", bench.name, &metric);
                 if let Some(c) = value {
                     use std::str::FromStr;
-                    let val = match f64::from_str(&c) {
+                    let val = match f64::from_str(c.as_str()) {
                         Ok(f) => f,
                         Err(_) => {
                             println!(
                                 "failed to parse value '{}' for {} into f64 number, ignoring",
-                                c,
+                                c.as_str(),
                                 bm_name
                             );
                             continue;
