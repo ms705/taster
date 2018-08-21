@@ -50,8 +50,7 @@ impl HistoryDB for InMemoryHistoryDB {
             Some(ref bh) => match bh.get(commit) {
                 None => Err(format!(
                     "commit {} not found in history for branch {}!",
-                    commit,
-                    branch
+                    commit, branch
                 )),
                 Some(ch) => Ok(ch.clone()),
             },

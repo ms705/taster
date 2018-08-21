@@ -52,11 +52,13 @@ impl SoupHistoryDB {
         debug!(log, "Installing recipe in Soup...");
         ch.install_recipe(recipe.to_owned());
 
-        let inputs = ch.inputs()
+        let inputs = ch
+            .inputs()
             .into_iter()
             .map(|(n, i)| (n, ch.get_mutator(i).unwrap()))
             .collect::<BTreeMap<String, Mutator>>();
-        let outputs = ch.outputs()
+        let outputs = ch
+            .outputs()
             .into_iter()
             .map(|(n, o)| (n, ch.get_getter(o).unwrap()))
             .collect::<BTreeMap<String, RemoteGetter>>();
@@ -89,23 +91,25 @@ impl HistoryDB for SoupHistoryDB {
     ) -> Result<BranchHistoryEntry, String> {
         let commit = match commit {
             None => {
-                let res = self.views
+                let res = self
+                    .views
                     .get_mut("BranchHeads")
                     .expect(&format!("no branch heads view"))
                     .lookup(&branch.into(), true);
 
                 println!("branch head lookup res: {:?}", res);
 
-                git2::Oid::from_str(&res.expect("branch has no head?").first().unwrap()[1]
-                    .to_string())
-                    .expect("failed to parse commit ID!")
+                git2::Oid::from_str(
+                    &res.expect("branch has no head?").first().unwrap()[1].to_string(),
+                ).expect("failed to parse commit ID!")
             }
             Some(c) => *c,
         };
 
         debug!(self.log, "reading results for {}", commit);
 
-        let res = self.views
+        let res = self
+            .views
             .get_mut("CommitResults")
             .expect(&format!("no commit results view"))
             .lookup(&format!("{}", commit).into(), true);

@@ -22,12 +22,12 @@ mod auth;
 mod common;
 mod config;
 mod email;
+mod github;
 mod history;
 mod repo;
 mod slack;
 mod taste;
 mod taster;
-mod github;
 
 use afterparty::{Delivery, Event, Hub};
 use hyper::Server;
@@ -97,12 +97,10 @@ pub fn main() {
                             hc,
                             commits
                                 .iter()
-                                .map(|c| {
-                                    Commit {
-                                        id: git2::Oid::from_str(&c.id).unwrap(),
-                                        msg: c.message.clone(),
-                                        url: c.url.clone(),
-                                    }
+                                .map(|c| Commit {
+                                    id: git2::Oid::from_str(&c.id).unwrap(),
+                                    msg: c.message.clone(),
+                                    url: c.url.clone(),
                                 })
                                 .collect(),
                         );

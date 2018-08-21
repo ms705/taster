@@ -123,8 +123,7 @@ impl Taster {
                 Ok(_) => (),
                 Err(e) => error!(
                     self.log,
-                    "failed to deliver GitHub status notification: {:?}",
-                    e
+                    "failed to deliver GitHub status notification: {:?}", e
                 ),
             }
         }

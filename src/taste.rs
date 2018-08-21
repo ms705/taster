@@ -1,9 +1,9 @@
 use config::{parse_config, Benchmark, Config};
-use history::HistoryDB;
-use Commit;
 use git2;
-use Push;
+use history::HistoryDB;
 use repo::Workspace;
+use Commit;
+use Push;
 
 use std::collections::HashMap;
 use std::io;
@@ -79,8 +79,7 @@ fn write_output(output: &Output, commit_id: git2::Oid, name: &str) {
     let mut stdout_file =
         File::create(&format!("{}-{}-stdout.log", commit_id, name)).expect(&format!(
             "Failed to create stdout log file for '{}' at commit '{}'.",
-            name,
-            commit_id
+            name, commit_id
         ));
     stdout_file
         .write_all(output.stdout.as_slice())
@@ -88,8 +87,7 @@ fn write_output(output: &Output, commit_id: git2::Oid, name: &str) {
     let mut stderr_file =
         File::create(&format!("{}-{}-stderr.log", commit_id, name)).expect(&format!(
             "Failed to create stderr log file for '{}' at commit '{}'.",
-            name,
-            commit_id
+            name, commit_id
         ));
     stderr_file
         .write_all(output.stderr.as_slice())
@@ -288,7 +286,8 @@ pub fn taste_commit(
     };
 
     let bench_results = match branch {
-        Some(ref branch) => cfg.benchmarks
+        Some(ref branch) => cfg
+            .benchmarks
             .iter()
             .map(|b| {
                 let head_history = match history.get_commit(branch, None) {
@@ -303,7 +302,8 @@ pub fn taste_commit(
                 (b.clone(), status, res)
             })
             .collect::<Vec<(Benchmark, ExitStatus, HashMap<String, BenchmarkResult<f64>>)>>(),
-        None => cfg.benchmarks
+        None => cfg
+            .benchmarks
             .iter()
             .map(|b| {
                 let (status, res) = benchmark(&ws.path, &cfg, b, commit.id, None, timeout);
