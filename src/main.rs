@@ -101,8 +101,7 @@ pub fn main() {
                                     id: git2::Oid::from_str(&c.id).unwrap(),
                                     msg: c.message.clone(),
                                     url: c.url.clone(),
-                                })
-                                .collect(),
+                                }).collect(),
                         );
                     }
                 }

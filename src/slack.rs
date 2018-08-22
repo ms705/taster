@@ -102,8 +102,7 @@ impl SlackNotifier {
                 check("Build", res.build),
                 check("Tests", res.test),
                 check("Benchmarks", res.bench)
-            ))
-            .color(color)
+            )).color(color)
             .build()
             .unwrap();
         attachments.push(build_att);
@@ -156,8 +155,7 @@ impl SlackNotifier {
                                 )),
                                 short: Some(true),
                             }
-                        })
-                        .collect::<Vec<_>>();
+                        }).collect::<Vec<_>>();
                     nv.sort_by(|a, b| b.title.cmp(&a.title));
 
                     let col = if res.iter().all(&is_regression) {

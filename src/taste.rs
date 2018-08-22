@@ -300,16 +300,14 @@ pub fn taste_commit(
                 entry.insert(b.name.clone(), res.clone());
                 history.put(branch, commit.id, entry).unwrap();
                 (b.clone(), status, res)
-            })
-            .collect::<Vec<(Benchmark, ExitStatus, HashMap<String, BenchmarkResult<f64>>)>>(),
+            }).collect::<Vec<(Benchmark, ExitStatus, HashMap<String, BenchmarkResult<f64>>)>>(),
         None => cfg
             .benchmarks
             .iter()
             .map(|b| {
                 let (status, res) = benchmark(&ws.path, &cfg, b, commit.id, None, timeout);
                 (b.clone(), status, res)
-            })
-            .collect::<Vec<(Benchmark, ExitStatus, HashMap<String, BenchmarkResult<f64>>)>>(),
+            }).collect::<Vec<(Benchmark, ExitStatus, HashMap<String, BenchmarkResult<f64>>)>>(),
     };
     let bench_success = bench_results.iter().all(|x| x.1.success());
 
