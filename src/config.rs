@@ -78,13 +78,11 @@ pub fn parse_config(
         .iter()
         .filter(|t| t.0 == "slack-aliases")
         .flat_map(|t| {
-            t.1
-                .as_table()
+            t.1.as_table()
                 .unwrap()
                 .iter()
                 .map(|(k, v)| (k.clone(), String::from(v.as_str().unwrap())))
-        })
-        .collect::<HashMap<_, _>>();
+        }).collect::<HashMap<_, _>>();
 
     // Taster config version
     let version = match value.get("version") {

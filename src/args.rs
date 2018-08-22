@@ -61,8 +61,7 @@ pub fn parse_args() -> Args {
                 .value_name("IP:PORT")
                 .default_value("0.0.0.0:4567")
                 .help("Listen address and port for webhook delivery"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("github_repo")
                 .short("r")
                 .long("github_repo")
@@ -71,15 +70,13 @@ pub fn parse_args() -> Args {
                 .value_name("GH_REPO")
                 .default_value("https://github.com/ms705/taster")
                 .help("GitHub repository to taste"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("email_addr")
                 .long("email_addr")
                 .takes_value(true)
                 .required(false)
                 .help("Email address to send notifications to"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("default_regression_reporting_threshold")
                 .long("default_regression_reporting_threshold")
                 .takes_value(true)
@@ -88,8 +85,7 @@ pub fn parse_args() -> Args {
                     "Relative performance threshold below which a result is considered a \
                      regression that needs reporting (0.1 = +/-10%).",
                 ),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("default_improvement_reporting_threshold")
                 .long("default_improvement_reporting_threshold")
                 .takes_value(true)
@@ -98,59 +94,51 @@ pub fn parse_args() -> Args {
                     "Relative performance threshold above which a result is considered an \
                      improvement that needs reporting (0.1 = +/-10%).",
                 ),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("history_db")
                 .long("history-db")
                 .takes_value(true)
                 .possible_values(&HistoryDBProvider::variants())
                 .case_insensitive(true)
                 .help("History storage provider to use."),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("secret")
                 .short("s")
                 .long("secret")
                 .takes_value(true)
                 .required(false)
                 .help("GitHub webhook secret"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("slack_hook_url")
                 .long("slack_hook_url")
                 .takes_value(true)
                 .required(false)
                 .help("Slack webhook URL to push notifications to"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("slack_channel")
                 .long("slack_channel")
                 .takes_value(true)
                 .required(false)
                 .default_value("#soup-test")
                 .help("Slack channel for notifications"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("github_api_key")
                 .long("github_api_key")
                 .takes_value(true)
                 .required(false)
                 .help("GitHub API key to provide status notifications"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("taste_head_only")
                 .long("taste_head_only")
                 .required(false)
                 .help("When multiple commits are pushed, taste the head commit only"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("timeout")
                 .long("timeout")
                 .required(false)
                 .takes_value(true)
                 .help("Timeout (in seconds) after which benchmarks should be killed"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("verbose_notifications")
                 .long("verbose_notifications")
                 .required(false)
@@ -158,8 +146,7 @@ pub fn parse_args() -> Args {
                     "List all benchmarks in notifications even if the results have not changed \
                      significantly",
                 ),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("workdir")
                 .short("w")
                 .long("workdir")
@@ -167,8 +154,7 @@ pub fn parse_args() -> Args {
                 .required(true)
                 .value_name("REPO_DIR")
                 .help("Directory holding the workspace repo"),
-        )
-        .after_help(TASTER_USAGE)
+        ).after_help(TASTER_USAGE)
         .get_matches();
 
     Args {
