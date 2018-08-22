@@ -98,6 +98,7 @@ pub fn parse_args() -> Args {
             Arg::with_name("history_db")
                 .long("history-db")
                 .takes_value(true)
+                .value_name("HISTDB-PROVIDER")
                 .possible_values(&HistoryDBProvider::variants())
                 .case_insensitive(true)
                 .help("History storage provider to use."),
