@@ -7,7 +7,7 @@ authors = ["Malte Schwarzkopf <malte@csail.mit.edu>"]
 
 [features]
 default = []
-soup = ["api"]
+soup = ["distributary"]
 
 [dependencies]
 afterparty = { git = "https://github.com/ms705/afterparty" }
