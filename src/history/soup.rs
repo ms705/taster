@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use distributary::{ControllerHandle, Mutator, NodeIndex, RemoteGetter, ZookeeperAuthority};
+use distributary::{ControllerHandle, Table, View, ZookeeperAuthority};
 use git2;
 use slog;
 
@@ -11,8 +11,8 @@ pub struct SoupHistoryDB {
     log: slog::Logger,
 
     recipe: String,
-    tables: BTreeMap<String, Mutator>,
-    views: BTreeMap<String, RemoteGetter>,
+    tables: BTreeMap<String, Table>,
+    views: BTreeMap<String, View>,
 }
 
 impl SoupHistoryDB {
@@ -44,24 +44,27 @@ impl SoupHistoryDB {
 
         debug!(log, "Finding Soup via Zookeeper...");
 
-        let zk_auth = ZookeeperAuthority::new(&format!("{}", zk_addr));
+        let zk_auth = ZookeeperAuthority::new(&format!("{}", zk_addr))
+            .expect("failed to connect to Zookeeper");
 
         debug!(log, "Connecting to Soup...");
-        let mut ch = ControllerHandle::new(zk_auth);
+        let mut ch = ControllerHandle::new(zk_auth).expect("failed to connect to Soup controller");
 
         debug!(log, "Installing recipe in Soup...");
-        ch.install_recipe(recipe.to_owned());
+        ch.install_recipe(&recipe.to_owned());
 
         let inputs = ch
             .inputs()
+            .expect("couldn't get inputs from Soup")
             .into_iter()
-            .map(|(n, i)| (n, ch.get_mutator(i).unwrap()))
-            .collect::<BTreeMap<String, Mutator>>();
+            .map(|(n, _)| (n, ch.table(&n).unwrap()))
+            .collect::<BTreeMap<String, Table>>();
         let outputs = ch
             .outputs()
+            .expect("couldn't get outputs from Soup")
             .into_iter()
-            .map(|(n, o)| (n, ch.get_getter(o).unwrap()))
-            .collect::<BTreeMap<String, RemoteGetter>>();
+            .map(|(n, o)| (n, ch.view(&n).unwrap()))
+            .collect::<BTreeMap<String, View>>();
 
         SoupHistoryDB {
             soup: ch,
@@ -95,7 +98,7 @@ impl HistoryDB for SoupHistoryDB {
                     .views
                     .get_mut("BranchHeads")
                     .expect(&format!("no branch heads view"))
-                    .lookup(&branch.into(), true);
+                    .lookup(&[branch.into()], true);
 
                 println!("branch head lookup res: {:?}", res);
 
@@ -112,7 +115,7 @@ impl HistoryDB for SoupHistoryDB {
             .views
             .get_mut("CommitResults")
             .expect(&format!("no commit results view"))
-            .lookup(&format!("{}", commit).into(), true);
+            .lookup(&[format!("{}", commit).into()], true);
 
         println!("commit res: {:?}", res);
 
