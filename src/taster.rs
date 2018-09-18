@@ -55,7 +55,7 @@ impl Taster {
         let history = match args.history_db {
             #[cfg(feature = "soup")]
             HistoryDBProvider::Soup => Box::new(history::soup::SoupHistoryDB::new(
-                "127.0.0.1:2181",
+                "127.0.0.1:2181/taster",
                 Some(log.clone()),
             )) as Box<HistoryDB>,
             HistoryDBProvider::InMemory => {
