@@ -57,13 +57,13 @@ impl SoupHistoryDB {
             .inputs()
             .expect("couldn't get inputs from Soup")
             .into_iter()
-            .map(|(n, _)| (n, ch.table(&n).unwrap()))
+            .map(|(n, _)| (n.clone(), ch.table(&n).unwrap()))
             .collect::<BTreeMap<String, Table>>();
         let outputs = ch
             .outputs()
             .expect("couldn't get outputs from Soup")
             .into_iter()
-            .map(|(n, o)| (n, ch.view(&n).unwrap()))
+            .map(|(n, _)| (n.clone(), ch.view(&n).unwrap()))
             .collect::<BTreeMap<String, View>>();
 
         SoupHistoryDB {

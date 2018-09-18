@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 extern crate afterparty;
 #[macro_use]
 extern crate clap;
@@ -30,7 +32,8 @@ mod taste;
 mod taster;
 
 use afterparty::{Delivery, Event, Hub};
-use hyper::Server;
+use hyper::server::Server;
+use std::sync::mpsc::channel;
 use std::sync::Mutex;
 
 use common::{Commit, Push};
@@ -50,7 +53,8 @@ pub fn main() {
     // Bootstrap with current HEAD commits
     t.bootstrap();
 
-    let tl = Mutex::new(t);
+    let (tx, rx) = channel();
+    let txl = Mutex::new(tx.clone());
 
     let mut hub = Hub::new();
     hub.handle_authenticated(
@@ -74,6 +78,13 @@ pub fn main() {
                     );
 
                     // Data structures to represent info from webhook
+                    let commits: Vec<Commit> = commits
+                        .iter()
+                        .map(|c| Commit {
+                            id: git2::Oid::from_str(&c.id).unwrap(),
+                            msg: c.message.clone(),
+                            url: c.url.clone(),
+                        }).collect();
                     let hc = Commit {
                         id: git2::Oid::from_str(&head_commit.id).unwrap(),
                         msg: head_commit.message.clone(),
@@ -87,22 +98,9 @@ pub fn main() {
                         repo_name: Some(repository.name.clone()),
                     };
 
+                    let txl = txl.lock().unwrap();
                     {
-                        let mut t = &mut *tl.lock().unwrap();
-
-                        t.notify_pending(&push, &push.head_commit);
-
-                        t.taste(
-                            push,
-                            hc,
-                            commits
-                                .iter()
-                                .map(|c| Commit {
-                                    id: git2::Oid::from_str(&c.id).unwrap(),
-                                    msg: c.message.clone(),
-                                    url: c.url.clone(),
-                                }).collect(),
-                        );
+                        txl.send((push, commits)).unwrap();
                     }
                 }
                 _ => (),
@@ -118,4 +116,10 @@ pub fn main() {
         args.listen_addr
     );
     srvc.unwrap();
+
+    while let Ok((push, commits)) = rx.recv() {
+        t.notify_pending(&push, &push.head_commit);
+
+        t.taste(push, commits);
+    }
 }

@@ -12,8 +12,7 @@ pub mod soup;
 // TODO(malte): proper types
 type BranchHistoryEntry = HashMap<String, HashMap<String, BenchmarkResult<f64>>>;
 
-// TODO(malte): should not need to be `Send` once we have a tasting queue
-pub trait HistoryDB: Send {
+pub trait HistoryDB {
     fn put(
         &mut self,
         branch: &str,

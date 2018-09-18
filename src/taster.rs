@@ -154,9 +154,10 @@ impl Taster {
         }
     }
 
-    pub fn taste(&mut self, push: Push, hc: Commit, commits: Vec<Commit>) {
+    pub fn taste(&mut self, push: Push, commits: Vec<Commit>) {
         // First taste the head commit
         self.ws.fetch().unwrap();
+        let hc = push.head_commit.clone();
         let head_res = taste::taste_commit(
             &self.ws,
             self.history.as_mut(),
