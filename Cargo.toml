@@ -5,12 +5,12 @@ authors = ["Malte Schwarzkopf <malte@csail.mit.edu>"]
 
 [features]
 default = []
-soup = ["api"]
+use_noria = ["noria"]
 
 [dependencies]
 afterparty = { git = "https://github.com/ms705/afterparty" }
 clap = "2.25.0"
-api = { git = "https://github.com/mit-pdos/distributary", optional = true }
+noria = { git = "https://github.com/mit-pdos/noria", optional = true }
 git2 = "0.6.4"
 hyper = "0.10"
 lettre = "0.6.2"
