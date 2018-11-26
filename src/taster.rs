@@ -53,7 +53,7 @@ impl Taster {
         let log = common::new_logger();
 
         let history = match args.db {
-            #[cfg(feature = "soup")]
+            #[cfg(feature = "use_noria")]
             DBProvider::Soup => Box::new(history::soup::SoupHistoryDB::new(
                 "127.0.0.1:2181/taster",
                 Some(log.clone()),
