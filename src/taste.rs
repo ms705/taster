@@ -182,8 +182,9 @@ fn benchmark(
 fn build(workdir: &str) -> Output {
     Command::new("cargo")
         .current_dir(workdir)
-        .arg("build")
-        .arg("--release")
+        .arg("check")
+        .arg("--all")
+        .arg("--all-targets")
         .env("RUST_BACKTRACE", "1")
         .output()
         .expect("Failed to execute 'cargo build'!")
@@ -209,12 +210,16 @@ pub fn taste_commit(
         },
     };
 
+    let version_output = version(&ws.path);
+    write_output(&version_output, commit.id, "version");
+
     let do_update = !Path::new(&format!("{}/Cargo.lock", ws.path)).exists();
 
     let build_success = {
         let update_success = if do_update {
             println!("running 'cargo update'");
             let update_output = update(&ws.path);
+            write_output(&update_output, commit.id, "update");
             if !update_output.status.success() {
                 println!("update failed: output status is {:?}", update_output.status);
             }
@@ -330,7 +335,7 @@ fn test(workdir: &str, timeout: Option<u64>) -> Output {
     let mut cmd = match timeout {
         None => {
             let mut cmd = Command::new("cargo");
-            cmd.arg("test");
+            cmd.arg("test").arg("--all");
             cmd
         }
         Some(timeout) => {
@@ -339,7 +344,8 @@ fn test(workdir: &str, timeout: Option<u64>) -> Output {
                 .arg(&format!("{}s", timeout + 30))
                 .arg(&format!("{}s", timeout))
                 .arg("cargo")
-                .arg("test");
+                .arg("test")
+                .arg("--all");
             cmd
         }
     };
@@ -356,4 +362,12 @@ fn update(workdir: &str) -> Output {
         .arg("update")
         .output()
         .expect("Failed to execute 'cargo update'!")
+}
+
+fn version(workdir: &str) -> Output {
+    Command::new("rustc")
+        .current_dir(workdir)
+        .arg("--version")
+        .output()
+        .expect("Failed to execute 'rustc --version'!")
 }
