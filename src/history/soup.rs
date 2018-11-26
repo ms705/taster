@@ -40,6 +40,7 @@ impl SoupHistoryDB {
                       QUERY BranchHeads: SELECT branches.name AS branch, commit_id AS head_commit \
                                          FROM branches \
                                          JOIN results ON (branches.id = results.branch_id) \
+                                         WHERE branches.name = ? \
                                          ORDER BY results.timestamp LIMIT 1;";
 
         debug!(log, "Finding Soup via Zookeeper...");
@@ -97,15 +98,17 @@ impl HistoryDB for SoupHistoryDB {
                 let res = self
                     .views
                     .get_mut("BranchHeads")
-                    .expect(&format!("no branch heads view"))
+                    .expect("no branch heads view")
                     .lookup(&[branch.into()], true);
 
                 println!("branch head lookup res: {:?}", res);
-
-                git2::Oid::from_str(
-                    &res.expect("branch has no head?").first().unwrap()[1].to_string(),
-                )
-                .expect("failed to parse commit ID!")
+                let rs = res.expect("Noria lookup failed");
+                if let Some(ref r) = rs.first() {
+                    let cid: String = r.get(1).expect("malformed record").into();
+                    git2::Oid::from_str(&cid).expect("failed to parse commit ID!")
+                } else {
+                    return Err("no data for branch".into());
+                }
             }
             Some(c) => *c,
         };
