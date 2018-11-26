@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
-use distributary::{ControllerHandle, Table, View, ZookeeperAuthority};
 use git2;
+use noria::{ControllerHandle, Table, View, ZookeeperAuthority};
 use slog;
 
 use super::{BranchHistoryEntry, HistoryDB};

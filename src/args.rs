@@ -31,16 +31,16 @@ pub struct Args {
     pub timeout: Option<u64>,
 }
 
-#[cfg(feature = "soup")]
-arg_enum!{
+#[cfg(feature = "use_noria")]
+arg_enum! {
     #[derive(PartialEq, Debug, Clone)]
     pub enum HistoryDBProvider {
         InMemory,
         Soup,
     }
 }
-#[cfg(not(feature = "soup"))]
-arg_enum!{
+#[cfg(not(feature = "use_noria"))]
+arg_enum! {
     #[derive(PartialEq, Debug, Clone)]
     pub enum HistoryDBProvider {
         InMemory,

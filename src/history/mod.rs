@@ -5,7 +5,7 @@ use git2;
 use taste::BenchmarkResult;
 
 pub mod in_memory;
-#[cfg(feature = "soup")]
+#[cfg(feature = "use_noria")]
 pub mod soup;
 
 // (benchmark, (metric, result))

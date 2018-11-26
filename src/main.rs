@@ -3,12 +3,12 @@
 extern crate afterparty;
 #[macro_use]
 extern crate clap;
-#[cfg(feature = "soup")]
-extern crate api as distributary;
 extern crate git2;
 extern crate github_rs;
 extern crate hyper;
 extern crate lettre;
+#[cfg(feature = "use_noria")]
+extern crate noria;
 extern crate regex;
 #[macro_use]
 extern crate serde_derive;
