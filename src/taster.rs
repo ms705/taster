@@ -1,4 +1,4 @@
-use args::{Args, HistoryDBProvider};
+use args::{Args, DBProvider};
 use common::{self, Commit, Push};
 use config::Config;
 use email;
@@ -52,13 +52,13 @@ impl Taster {
 
         let log = common::new_logger();
 
-        let history = match args.history_db {
+        let history = match args.db {
             #[cfg(feature = "soup")]
-            HistoryDBProvider::Soup => Box::new(history::soup::SoupHistoryDB::new(
+            DBProvider::Soup => Box::new(history::soup::SoupHistoryDB::new(
                 "127.0.0.1:2181/taster",
                 Some(log.clone()),
             )) as Box<HistoryDB>,
-            HistoryDBProvider::InMemory => {
+            DBProvider::InMemory => {
                 Box::new(history::in_memory::InMemoryHistoryDB::new()) as Box<HistoryDB>
             }
         };

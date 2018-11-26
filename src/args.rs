@@ -21,7 +21,7 @@ pub struct Args {
     pub slack_hook_url: Option<String>,
     pub slack_channel: Option<String>,
 
-    pub history_db: HistoryDBProvider,
+    pub db: DBProvider,
 
     pub taste_head_only: bool,
     pub verbose_notify: bool,
@@ -34,7 +34,7 @@ pub struct Args {
 #[cfg(feature = "use_noria")]
 arg_enum! {
     #[derive(PartialEq, Debug, Clone)]
-    pub enum HistoryDBProvider {
+    pub enum DBProvider {
         InMemory,
         Soup,
     }
@@ -42,7 +42,7 @@ arg_enum! {
 #[cfg(not(feature = "use_noria"))]
 arg_enum! {
     #[derive(PartialEq, Debug, Clone)]
-    pub enum HistoryDBProvider {
+    pub enum DBProvider {
         InMemory,
     }
 }
@@ -171,7 +171,7 @@ pub fn parse_args() -> Args {
         slack_hook_url: args.value_of("slack_hook_url").map(String::from),
         slack_channel: args.value_of("slack_channel").map(String::from),
 
-        history_db: value_t!(args, "history_db", HistoryDBProvider).unwrap_or_else(|e| e.exit()),
+        db: value_t!(args, "db", DBProvider).unwrap_or_else(|e| e.exit()),
 
         taste_head_only: args.is_present("taste_head_only"),
         verbose_notify: args.is_present("verbose_notifications"),
