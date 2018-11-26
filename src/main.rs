@@ -84,7 +84,8 @@ pub fn main() {
                             id: git2::Oid::from_str(&c.id).unwrap(),
                             msg: c.message.clone(),
                             url: c.url.clone(),
-                        }).collect();
+                        })
+                        .collect();
                     let hc = Commit {
                         id: git2::Oid::from_str(&head_commit.id).unwrap(),
                         msg: head_commit.message.clone(),
@@ -112,8 +113,7 @@ pub fn main() {
 
     info!(
         common::new_logger(),
-        "Taster listening on {}",
-        args.listen_addr
+        "Taster listening on {}", args.listen_addr
     );
     srvc.unwrap();
 

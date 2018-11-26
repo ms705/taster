@@ -82,7 +82,8 @@ pub fn parse_config(
                 .unwrap()
                 .iter()
                 .map(|(k, v)| (k.clone(), String::from(v.as_str().unwrap())))
-        }).collect::<HashMap<_, _>>();
+        })
+        .collect::<HashMap<_, _>>();
 
     // Taster config version
     let version = match value.get("version") {

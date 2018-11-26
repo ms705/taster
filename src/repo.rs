@@ -77,7 +77,8 @@ impl Workspace {
                             .find_commit(branch.get().target().unwrap())
                             .unwrap(),
                     )
-                }).collect(),
+                })
+                .collect(),
         }
     }
 

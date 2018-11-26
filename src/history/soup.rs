@@ -104,7 +104,8 @@ impl HistoryDB for SoupHistoryDB {
 
                 git2::Oid::from_str(
                     &res.expect("branch has no head?").first().unwrap()[1].to_string(),
-                ).expect("failed to parse commit ID!")
+                )
+                .expect("failed to parse commit ID!")
             }
             Some(c) => *c,
         };
