@@ -1,18 +1,18 @@
 use std::collections::BTreeMap;
 
 use git2;
-use noria::{ControllerHandle, Table, View, ZookeeperAuthority};
+use noria::{SyncControllerHandle, SyncTable, SyncView, ZookeeperAuthority};
 use slog;
 
 use super::{BranchHistoryEntry, HistoryDB};
 
 pub struct SoupHistoryDB {
-    soup: ControllerHandle<ZookeeperAuthority>,
+    soup: SyncControllerHandle<ZookeeperAuthority, tokio::runtime::TaskExecutor>,
     log: slog::Logger,
 
     recipe: String,
-    tables: BTreeMap<String, Table>,
-    views: BTreeMap<String, View>,
+    tables: BTreeMap<String, SyncTable>,
+    views: BTreeMap<String, SyncView>,
 }
 
 impl SoupHistoryDB {
@@ -49,7 +49,10 @@ impl SoupHistoryDB {
             .expect("failed to connect to Zookeeper");
 
         debug!(log, "Connecting to Soup...");
-        let mut ch = ControllerHandle::new(zk_auth).expect("failed to connect to Soup controller");
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let executor = rt.executor();
+        let mut ch = SyncControllerHandle::new(zk_auth, executor)
+            .expect("failed to connect to Soup controller");
 
         debug!(log, "Installing recipe in Soup...");
         ch.install_recipe(&recipe.to_owned());
@@ -58,14 +61,14 @@ impl SoupHistoryDB {
             .inputs()
             .expect("couldn't get inputs from Soup")
             .into_iter()
-            .map(|(n, _)| (n.clone(), ch.table(&n).unwrap()))
-            .collect::<BTreeMap<String, Table>>();
+            .map(|(n, _)| (n.clone(), ch.table(&n).unwrap().into_sync()))
+            .collect::<BTreeMap<String, SyncTable>>();
         let outputs = ch
             .outputs()
             .expect("couldn't get outputs from Soup")
             .into_iter()
-            .map(|(n, _)| (n.clone(), ch.view(&n).unwrap()))
-            .collect::<BTreeMap<String, View>>();
+            .map(|(n, _)| (n.clone(), ch.view(&n).unwrap().into_sync()))
+            .collect::<BTreeMap<String, SyncView>>();
 
         SoupHistoryDB {
             soup: ch,

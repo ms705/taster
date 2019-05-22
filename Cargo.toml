@@ -9,7 +9,7 @@ use_noria = ["noria"]
 
 [dependencies]
 clap = "2.25.0"
-noria = { git = "https://github.com/mit-pdos/noria", optional = true }
+noria = { git = "https://github.com/mit-pdos/noria", optional = true, rev = "668785857874a10254cd6d2ba1ea764db842528d" }
 git2 = "0.6.4"
 hyper = "0.12"
 regex = "1.0.0"
@@ -23,6 +23,7 @@ serde_json = "1.0"
 slog = "2.2.2"
 #slog = { version = "2.2.2", features = ["max_level_trace", "release_max_level_debug"] }
 slog-term = "2.4.0"
+tokio = "0.1"
 
 [patch.crates-io]
 tower-service = { git = "https://github.com/tower-rs/tower.git" }
