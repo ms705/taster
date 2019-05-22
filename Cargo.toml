@@ -5,11 +5,11 @@ authors = ["Malte Schwarzkopf <malte@csail.mit.edu>"]
 
 [features]
 default = []
-#use_noria = ["noria"]
+use_noria = ["noria"]
 
 [dependencies]
 clap = "2.25.0"
-#noria = { git = "https://github.com/mit-pdos/noria", optional = true }
+noria = { git = "https://github.com/mit-pdos/noria", optional = true }
 git2 = "0.6.4"
 hyper = "0.12"
 regex = "1.0.0"
