@@ -1,6 +1,4 @@
-#![feature(nll)]
-
-extern crate afterparty;
+extern crate rifling;
 #[macro_use]
 extern crate clap;
 extern crate git2;
@@ -31,13 +29,52 @@ mod slack;
 mod taste;
 mod taster;
 
-use afterparty::{Delivery, Event, Hub};
+use hyper::rt::Future;
 use hyper::server::Server;
+
+use rifling::{Constructor, Delivery, DeliveryType, Hook};
+
 use std::sync::mpsc::channel;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 use common::{Commit, Push};
 use taster::Taster;
+
+fn parse_push(payload: &serde_json::Value) -> (Push, Vec<Commit>) {
+    let payload = payload.as_object().unwrap();
+
+    let commits = payload["commits"].as_array().unwrap();
+    let head_commit = &payload["head"];
+    let pusher = &payload["pusher"];
+    let repository = &payload["repository"];
+
+    let stringify = |v: &serde_json::Value| -> String { v.as_str().unwrap().to_owned() };
+
+    // Data structures to represent info from webhook
+    let commits: Vec<Commit> = commits
+        .iter()
+        .map(|c| Commit {
+            id: git2::Oid::from_str(c["id"].as_str().unwrap()).unwrap(),
+            msg: stringify(&c["message"]),
+            url: stringify(&c["url"]),
+        })
+        .collect();
+    let hc = Commit {
+        id: git2::Oid::from_str(head_commit["id"].as_str().unwrap()).unwrap(),
+        msg: stringify(&head_commit["message"]),
+        url: stringify(&head_commit["url"]),
+    };
+    let push = Push {
+        head_commit: hc.clone(),
+        push_ref: Some(stringify(&payload["ref"])),
+        pusher: Some(stringify(&pusher["name"])),
+        owner_name: Some(stringify(&repository["owner"]["name"])),
+        repo_name: Some(stringify(&repository["name"])),
+    };
+
+    (push, commits)
+}
 
 pub fn main() {
     let args = args::parse_args();
@@ -54,72 +91,59 @@ pub fn main() {
     t.bootstrap();
 
     let (tx, rx) = channel();
-    let txl = Mutex::new(tx.clone());
+    let txl = Arc::new(Mutex::new(tx.clone()));
 
-    let mut hub = Hub::new();
-    hub.handle_authenticated(
+    let mut cons = Constructor::new();
+    let hook_log = log.clone();
+    let hook = Hook::new(
         "push",
-        args.github_hook_secret.unwrap(),
+        args.github_hook_secret,
         move |delivery: &Delivery| {
-            match delivery.payload {
-                Event::Push {
-                    ref _ref,
-                    ref commits,
-                    ref head_commit,
-                    ref pusher,
-                    ref repository,
-                    ..
-                } => {
-                    info!(
-                        log,
-                        "Handling {} commits pushed by {}",
-                        commits.len(),
-                        pusher.name
-                    );
+            if let Some(payload) = &delivery.payload {
+                match delivery.delivery_type {
+                    DeliveryType::GitHub => {
+                        let (push, commits) = parse_push(payload);
+                        info!(
+                            hook_log,
+                            "Handling {} commits pushed by {}",
+                            commits.len(),
+                            push.pusher.as_ref().unwrap_or(&"anonymous".to_owned())
+                        );
 
-                    // Data structures to represent info from webhook
-                    let commits: Vec<Commit> = commits
-                        .iter()
-                        .map(|c| Commit {
-                            id: git2::Oid::from_str(&c.id).unwrap(),
-                            msg: c.message.clone(),
-                            url: c.url.clone(),
-                        })
-                        .collect();
-                    let hc = Commit {
-                        id: git2::Oid::from_str(&head_commit.id).unwrap(),
-                        msg: head_commit.message.clone(),
-                        url: head_commit.url.clone(),
-                    };
-                    let push = Push {
-                        head_commit: hc.clone(),
-                        push_ref: Some(_ref.clone()),
-                        pusher: Some(pusher.name.clone()),
-                        owner_name: Some(repository.owner.name.clone()),
-                        repo_name: Some(repository.name.clone()),
-                    };
-
-                    let txl = txl.lock().unwrap();
-                    {
-                        txl.send((push, commits)).unwrap();
+                        // enqueue for tasting
+                        let txl = txl.lock().unwrap();
+                        {
+                            txl.send((push, commits)).unwrap();
+                        }
                     }
+                    _ => unimplemented!(),
                 }
-                _ => (),
             }
         },
     );
 
-    let srvc = Server::http(&args.listen_addr).unwrap().handle(hub);
+    cons.register(hook);
+
+    let server = Server::bind(&args.listen_addr)
+        .serve(cons)
+        .map_err(|e| eprintln!("Error: {:#?}", e));
+
+    thread::spawn(move || {
+        hyper::rt::run(server);
+    });
 
     info!(
         common::new_logger(),
         "Taster listening on {}", args.listen_addr
     );
-    srvc.unwrap();
 
-    while let Ok((push, commits)) = rx.recv() {
-        t.notify_pending(&push, &push.head_commit);
+    loop {
+        if let Ok((push, commits)) = rx.recv() {
+            t.notify_pending(&push, &push.head_commit);
 
-        t.taste(push, commits);
+            t.taste(push, commits);
+        } else {
+            panic!("Failed to receive on tasting channel!");
+        }
     }
 }
