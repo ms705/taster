@@ -24,3 +24,11 @@ serde_json = "1.0"
 slog = "2.2.2"
 #slog = { version = "2.2.2", features = ["max_level_trace", "release_max_level_debug"] }
 slog-term = "2.4.0"
+
+[patch.crates-io]
+tower-service = { git = "https://github.com/tower-rs/tower.git" }
+tower-discover = { git = "https://github.com/tower-rs/tower.git" }
+tower-balance = { git = "https://github.com/tower-rs/tower.git" }
+tower-buffer = { git = "https://github.com/tower-rs/tower.git" }
+tower-util = { git = "https://github.com/tower-rs/tower.git" }
+tower = { git = "https://github.com/tower-rs/tower.git" }
