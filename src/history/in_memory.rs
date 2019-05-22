@@ -40,7 +40,10 @@ impl HistoryDB for InMemoryHistoryDB {
         let commit = match commit {
             None => {
                 // use HEAD
-                self.heads.get(branch).unwrap()
+                match self.heads.get(branch) {
+                    None => return Err(format!("unknown head of branch {}", branch)),
+                    Some(c) => c,
+                }
             }
             Some(c) => c,
         };
