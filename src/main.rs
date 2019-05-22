@@ -4,7 +4,6 @@ extern crate clap;
 extern crate git2;
 extern crate github_rs;
 extern crate hyper;
-extern crate lettre;
 #[cfg(feature = "use_noria")]
 extern crate noria;
 extern crate regex;
@@ -21,7 +20,6 @@ mod args;
 mod auth;
 mod common;
 mod config;
-mod email;
 mod github;
 mod history;
 mod repo;

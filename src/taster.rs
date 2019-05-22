@@ -1,7 +1,6 @@
 use args::{Args, DBProvider};
 use common::{self, Commit, Push};
 use config::Config;
-use email;
 use github;
 use history::{self, HistoryDB};
 use repo::{self, Workspace};
@@ -18,7 +17,6 @@ pub struct Taster {
     ws: Workspace,
     history: Box<HistoryDB>,
 
-    en: Option<email::EmailNotifier>,
     gn: Option<github::GithubNotifier>,
     sn: Option<slack::SlackNotifier>,
 }
@@ -29,11 +27,6 @@ impl Taster {
         let wd = args.workdir.clone();
         let workdir = Path::new(&wd);
 
-        let en = if let Some(ref addr) = args.email_notification_addr {
-            Some(email::EmailNotifier::new(addr, &repo))
-        } else {
-            None
-        };
         let sn = if let Some(ref url) = args.slack_hook_url {
             Some(slack::SlackNotifier::new(
                 url,
@@ -72,7 +65,6 @@ impl Taster {
 
             gn: gn,
             sn: sn,
-            en: en,
         }
     }
 
@@ -136,10 +128,6 @@ impl Taster {
         push: &Push,
         commit: &Commit,
     ) {
-        // email notification
-        if self.en.is_some() {
-            self.en.as_ref().unwrap().notify(cfg, &res, &push).unwrap();
-        }
         // slack notification
         if self.sn.is_some() {
             self.sn.as_ref().unwrap().notify(cfg, &res, &push).unwrap();
